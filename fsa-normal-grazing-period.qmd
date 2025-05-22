@@ -176,7 +176,6 @@ filtered = data.filter(d => d.year === year && d.type === type)
 // Create a lookup table keyed by `id`
 valueById = Object.fromEntries(filtered.map(d => [String(d.id).padStart(5, "0"), d[variable]]))
 
-
 // Merge values into counties.features
 countiesFiltered = {
   // Build lookup from filtered CSV: id → full row

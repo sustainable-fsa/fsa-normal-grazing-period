@@ -105,7 +105,7 @@ FSA county codes are documented in [FSA Handbook 1-CM, Exhibit 101](https://www.
 
 If using this data in published work, please cite:
 
-> USDA Farm Service Agency. *Normal Grazing Periods, 2008–2024*. FOIA request 2025-FSA-04691-F. Accessed via GitHub archive, YYYY. https://github.com/climate-smart-usda/fsa-normal-grazing-period
+> USDA Farm Service Agency. *Normal Grazing Periods, 2008–2024*. FOIA request 2025-FSA-04691-F by R. Kyle Bocinsky. Accessed via GitHub archive, YYYY. https://climate-smart-usda.github.io/fsa-normal-grazing-period/
 
 ---
 
