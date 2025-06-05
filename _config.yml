@@ -5,7 +5,6 @@ url: "https://climate-smart-usda.github.io/fsa-normal-grazing-period/"  # Your G
 baseurl: "/fsa-normal-grazing-period"
 
 remote_theme: jekyll/minima
-ignore_theme_config: true
 plugins:
   - jekyll-remote-theme
 
