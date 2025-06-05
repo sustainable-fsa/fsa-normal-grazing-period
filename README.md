@@ -186,8 +186,8 @@ ggplot(counties) +
           color = "white",
           linewidth = 0.2) +
   khroma::scale_fill_batlowK(limits = c(0,52),
-                            name = "Grazing\nPeriod\nDuration") +
-  labs(title = "FSA Normal Grazing Period Duration (weeks)",
+                            name = "NGP\nDuration\n(weeks)") +
+  labs(title = "FSA Normal Grazing Period Duration",
        subtitle = "Native Pasture — 2024") +
   theme_void()
 ```
