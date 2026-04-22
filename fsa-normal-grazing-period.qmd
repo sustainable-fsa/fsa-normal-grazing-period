@@ -11,18 +11,17 @@ editor_options:
 ```{r create-topojson}
 #| echo: false     # hides the code
 #| results: "hide" # hides printed output
-#| message: false  # hdides messages (e.g. from package loading)
+#| message: false  # hides messages (e.g. from package loading)
 #| warning: false  # hides warnings
 
 library(sf)
-library(magrittr)
 library(rmapshaper)
 
 dir.create("assets",
            recursive = TRUE,
            showWarnings = FALSE)
 
-readr::read_csv("fsa-normal-grazing-period.csv") %>%
+readr::read_csv("fsa-normal-grazing-period.csv") |>
   dplyr::transmute(
     id = paste0(`FIPS State Code`, `FIPS County Code`),
     year = `Program Year`,
@@ -30,12 +29,9 @@ readr::read_csv("fsa-normal-grazing-period.csv") %>%
     start_date = `Grazing Period Start Date`,
     end_date = `Grazing Period End Date`,
     start_yday = lubridate::yday(`Grazing Period Start Date`),
-    end_yday = lubridate::yday(`Grazing Period End Date`)) %>%
+    end_yday = lubridate::yday(`Grazing Period End Date`)) |>
   readr::write_csv(
-    file.path(
-      "assets",
-      "fsa-normal-grazing-period-simple.csv"
-    ), 
+    file.path("assets", "fsa-normal-grazing-period-simple.csv"),
     quote = "all")
 
 ## The US Census county definitions
@@ -43,67 +39,52 @@ readr::read_csv("fsa-normal-grazing-period.csv") %>%
 
 counties <-
   dplyr::bind_rows(
-    tigris::counties(cb = TRUE,
-                       resolution = "5m") %>%
+    tigris::counties(cb = TRUE, resolution = "5m") |>
       dplyr::transmute(VINTAGE = 2024L, STATEFP, COUNTYFP, STATE_NAME, NAME),
-    tigris::counties(cb = TRUE,
-                       resolution = "5m", year = 2014) %>%
+    tigris::counties(cb = TRUE, resolution = "5m", year = 2014) |>
       dplyr::left_join(
-        tigris::states(cb = TRUE,
-                       resolution = "5m", year = 2014) %>%
-          dplyr::transmute(STATEFP, STATE_NAME = NAME) %>%
+        tigris::states(cb = TRUE, resolution = "5m", year = 2014) |>
+          dplyr::transmute(STATEFP, STATE_NAME = NAME) |>
           sf::st_drop_geometry()
-      ) %>%
-      dplyr::arrange(STATEFP, COUNTYFP) %>%
+      ) |>
+      dplyr::arrange(STATEFP, COUNTYFP) |>
       dplyr::transmute(VINTAGE = 2014L, STATEFP, COUNTYFP, STATE_NAME, NAME)
-  ) %>%
-  dplyr::group_by(STATEFP, COUNTYFP) %>%
-  dplyr::filter(VINTAGE == max(VINTAGE)) %>%
-  dplyr::ungroup() %>%
-  dplyr::arrange(STATEFP, COUNTYFP) %>%
-  dplyr::filter(!(STATEFP %in% c("60", "78", "14", "52", "69", "66"))) %>%
-  sf::st_transform("WGS84") %>%
-      dplyr::transmute(id = paste0(STATEFP, COUNTYFP),
-                    state = STATE_NAME,
-                    county = NAME) %>%
-      dplyr::distinct()
-  
+  ) |>
+  dplyr::group_by(STATEFP, COUNTYFP) |>
+  dplyr::filter(VINTAGE == max(VINTAGE)) |>
+  dplyr::ungroup() |>
+  dplyr::arrange(STATEFP, COUNTYFP) |>
+  dplyr::filter(!(STATEFP %in% c("60", "78", "14", "52", "69", "66"))) |>
+  sf::st_transform("WGS84") |>
+  dplyr::transmute(id = paste0(STATEFP, COUNTYFP),
+                   state = STATE_NAME,
+                   county = NAME) |>
+  dplyr::distinct()
+
 counties <-
-  counties %>%
-  dplyr::select(id) %>%
-  rmapshaper::ms_explode(sys = TRUE,
-                         sys_mem = 16) %>%
-  rmapshaper::ms_dissolve(field = "id",
-                          sys = TRUE,
-                          sys_mem = 16) %>%
-    rmapshaper::ms_simplify(keep = 0.5,
-                          sys = TRUE,
-                          sys_mem = 16) %>%
-  sf::st_make_valid() %>%
-  rmapshaper::ms_explode(sys = TRUE,
-                         sys_mem = 16) %>%
-  rmapshaper::ms_dissolve(field = "id",
-                          sys = TRUE,
-                          sys_mem = 16) %>%
-  rmapshaper::ms_explode(sys = TRUE,
-                         sys_mem = 16) %>%
-  tigris::shift_geometry() %>%
-  sf::st_make_valid() %>%
-  sf::st_transform("WGS84") %>%
-  rmapshaper::ms_explode(sys = TRUE,
-                         sys_mem = 16) %>%
-  rmapshaper::ms_dissolve(field = "id",
-                          sys = TRUE,
-                          sys_mem = 16) %>%
-  sf::st_cast("MULTIPOLYGON") %>%
-  dplyr::arrange(id) %>%
+  counties |>
+  dplyr::select(id) |>
+  rmapshaper::ms_explode(sys = TRUE, sys_mem = 16) |>
+  rmapshaper::ms_dissolve(field = "id", sys = TRUE, sys_mem = 16) |>
+  rmapshaper::ms_simplify(keep = 0.5, sys = TRUE, sys_mem = 16) |>
+  sf::st_make_valid() |>
+  rmapshaper::ms_explode(sys = TRUE, sys_mem = 16) |>
+  rmapshaper::ms_dissolve(field = "id", sys = TRUE, sys_mem = 16) |>
+  rmapshaper::ms_explode(sys = TRUE, sys_mem = 16) |>
+  tigris::shift_geometry() |>
+  sf::st_make_valid() |>
+  sf::st_transform("WGS84") |>
+  rmapshaper::ms_explode(sys = TRUE, sys_mem = 16) |>
+  rmapshaper::ms_dissolve(field = "id", sys = TRUE, sys_mem = 16) |>
+  sf::st_cast("MULTIPOLYGON") |>
+  dplyr::arrange(id) |>
   dplyr::left_join(
-    counties %>%
-      sf::st_drop_geometry() %>%
+    counties |>
+      sf::st_drop_geometry() |>
       dplyr::distinct()
-  ) %T>%
-  sf::write_sf("assets/us-census-counties.geojson",
-               delete_dsn = TRUE)
+  )
+
+sf::write_sf(counties, "assets/us-census-counties.geojson", delete_dsn = TRUE)
 
 system(
   "
@@ -120,10 +101,6 @@ mapshaper \\
 
 unlink("assets/us-census-counties.geojson")
 
-sf::read_sf("assets/us-census-counties.topojson") %>%
-  sf::st_set_crs("WGS84") %>%
-  mapview::mapview()
-
 ```
 
 
@@ -133,53 +110,38 @@ sf::read_sf("assets/us-census-counties.topojson") %>%
 #| message: false  # hides messages (e.g. from package loading)
 #| warning: false  # hides warnings
 
-library(magrittr)
-library(tidyverse)
-
-# sf::read_sf("fsa_counties.topojson") %>%
-#   dplyr::left_join(
-#     readr::read_csv("fsa-normal-grazing-period-simple.csv") %>%
-#       dplyr::filter(year == 2020, type == "Native Pasture")
-#   ) %>%
-#   mapview::mapview(zcol = "start")
+library(ggplot2)
 
 ## yday cyclic palette
 dates <- seq(lubridate::as_date("1999-07-01"), lubridate::as_date("2000-06-30"), "1 day")
 color_shift <- 250
 colors <- as.character(khroma::color("romaO", reverse = TRUE)(366))
-colors <- colors[c((color_shift + 1):366,1:color_shift)]
+colors <- colors[c((color_shift + 1):366, 1:color_shift)]
 
 yday_pal <-
   tibble::tibble(date = dates,
                  color = colors,
-                 yday = lubridate::yday(dates)) %>%
+                 yday = lubridate::yday(dates)) |>
   dplyr::arrange(yday)
 
-yday_pal$color %>%
-  jsonlite::write_json("assets/colors.json", auto_unbox = TRUE)
+jsonlite::write_json(yday_pal$color, "assets/colors.json", auto_unbox = TRUE)
 
 ## yday cyclic legend
 yday_legend <-
-  yday_pal %>%
-  ggplot2::ggplot(mapping = aes(x = date,
-                                y = 1,
-                                fill = color)) +
-  geom_col(color = NA,
-           linewidth = 0) +
+  yday_pal |>
+  ggplot(mapping = aes(x = date, y = 1, fill = color)) +
+  geom_col(color = NA, linewidth = 0) +
   coord_polar(clip = "off") +
   scale_fill_identity() +
-  scale_x_date(date_breaks = "month",
-               date_labels = "%b"
-  ) +
-  ylim(-1,1.25) +
+  scale_x_date(date_breaks = "month", date_labels = "%b") +
+  ylim(-1, 1.25) +
   theme_void(base_size = 24) +
   theme(legend.position = "none",
         axis.text.x = element_text(size = 16, face = "bold"),
         axis.text.y = element_blank(),
         axis.title = element_blank(),
         panel.grid = element_blank(),
-        plot.margin = margin(0.1,0.1,0.1,0.1, unit = "in")
-  )
+        plot.margin = margin(0.1, 0.1, 0.1, 0.1, unit = "in"))
 
 ggsave(filename = "assets/legend.png",
        plot = yday_legend,
@@ -226,150 +188,122 @@ value: "start_yday"
 ```{ojs read-data}
 //| output: false
 
-// Import libraries
-scaleSequential = (await import("https://cdn.jsdelivr.net/npm/d3@7/+esm")).scaleSequential
+formatDate = d3.utcFormat("%b %d, %Y")
 
-// a format for dates
-formatDate = d3.utcFormat("%b %d, %Y")  // e.g., "Apr 18, 2025"
-
-// counties
-
-//counties_file = await d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json");
-us = await d3.json("assets/us-census-counties.topojson");
-//us = await d3.json("assets/fsa-counties-dd17-albers.topojson");
+us = await d3.json("assets/us-census-counties.topojson")
 counties = topojson.feature(us, us.objects.counties)
-
-// states, but just the boundaries between them
-//states_file = FileAttachment("assets/fsa_states.topojson").json()
 states = topojson.mesh(us, us.objects.states, (a, b) => a !== b)
 
-// normal grazing period data, simplified
 data = FileAttachment("assets/fsa-normal-grazing-period-simple.csv").csv({typed: true})
 
-// Load color palettes
 romaO = FileAttachment("assets/colors.json").json()
-color = scaleSequential()
-.domain([1, 366])
-.interpolator(t => romaO[Math.floor(t * (romaO.length - 1))])
+color = d3.scaleSequential()
+  .domain([1, 366])
+  .interpolator(t => romaO[Math.floor(t * (romaO.length - 1))])
 
 ```
 
 ```{ojs filter-join-data}
 //| output: false
 
-// Filter CSV data to current selections
 filtered = data.filter(d => d.year === year && d.type === type)
 
-// Create a lookup table keyed by `id`
-valueById = Object.fromEntries(filtered.map(d => [String(d.id).padStart(5, "0"), d[variable]]))
-
-// Merge values into counties.features
 countiesFiltered = {
-// Build lookup from filtered CSV: id → full row
-const rowById = Object.fromEntries(
-filtered.map(d => [String(d.id).padStart(5, "0"), d])
-);
+  const rowById = Object.fromEntries(
+    filtered.map(d => [String(d.id).padStart(5, "0"), d])
+  );
 
-// Rebuild counties with joined properties
-return {
-type: "FeatureCollection",
-features: counties.features.map(f => {
-const id = String(f.id);
-const row = rowById[id];
-
-return {
-...f,
-properties: {
-id: f.id,
-...f.properties,
-...(row ?? {}),
-value: row ? row[variable] : null  // explicitly add value for coloring
+  return {
+    type: "FeatureCollection",
+    features: counties.features.map(f => {
+      const row = rowById[String(f.id)];
+      return {
+        ...f,
+        properties: {
+          id: f.id,
+          ...f.properties,
+          ...(row ?? {}),
+          value: row ? row[variable] : null
+        }
+      };
+    })
+  };
 }
-};
+
+```
+
+```{ojs cardsize}
+//| output: false
+
+// Reactive card dimensions — uses #map (created by Quarto from label: map) to find the card body
+cardSize = Generators.observe(notify => {
+  let ro;
+  const check = setInterval(() => {
+    const cardBody = document.querySelector('#map')?.closest('.card-body');
+    if (cardBody) {
+      clearInterval(check);
+      ro = new ResizeObserver(([entry]) => {
+        const { width, height } = entry.contentRect;
+        if (width > 0 && height > 0) notify({ width, height });
+      });
+      ro.observe(cardBody);
+    }
+  }, 50);
+  return () => {
+    clearInterval(check);
+    if (ro) ro.disconnect();
+  };
 })
-};
-}
-
 ```
 
 ```{ojs}
 //| label: map
 //| title: FSA Normal Grazing Periods
 
-{
-  const container = html`<div style="width:100%;height:100%;">`;
+Plot.plot({
+  width: cardSize.width,
+  height: cardSize.height,
+  projection: {
+    type: "albers",
+    domain: counties
+  },
+  grid: true,
+  color: {legend: false},
+  marks: [
+    Plot.geo(countiesFiltered, {
+      fill: d => d.properties.value != null ? color(d.properties.value) : "#ccc"
+    }),
 
-  function render(w, h) {
-    container.replaceChildren(
-      Plot.plot({
-        width: w,
-        height: h,
-        projection: {
-          type: "albers",
-          domain: counties
-        },
-        grid: true,
-        color: {legend: false},
-        marks: [
-          Plot.geo(countiesFiltered, {
-            fill: d => d.properties.value != null ? color(d.properties.value) : "#ccc"
-          }),
-
-          Plot.dot(
-            countiesFiltered.features.map(f => {
-              const [x, y] = d3.geoCentroid(f);
-              return {
-                ...f.properties,
-                x,
-                y
-              };
-            }),
-            {
-              x: "x",
-              y: "y",
-              r: 3,
-              fill: "transparent",
-              stroke: "none",
-              tip: true,
-              title: d => `${d.county} County, ${d.state}
+    Plot.dot(
+      countiesFiltered.features.map(f => {
+        const [x, y] = d3.geoCentroid(f);
+        return {
+          ...f.properties,
+          x,
+          y
+        };
+      }),
+      {
+        x: "x",
+        y: "y",
+        r: 3,
+        fill: "transparent",
+        stroke: "none",
+        tip: true,
+        title: d => `${d.county} County, ${d.state}
 FIPS: ${String(d.id).padStart(5, "0")}
 Crop Type: ${type}
 Start: ${d.start_date ? formatDate(d.start_date) : "None"}
 End: ${d.end_date ? formatDate(d.end_date) : "None"}`
-            }
-          ),
+      }
+    ),
 
-          Plot.geo(states, {stroke: "white"}),
-          Plot.image([{}], { x: -76, y: 30,
-            width: 100,
-            sheight: 100,
-            src: () => "assets/legend.png"}),
-        ]
-      })
-    );
-  }
-
-  yield container;
-
-  const cardBody = container.closest('.card-body') || container.parentElement;
-
-  // Initial render
-  const rect = cardBody.getBoundingClientRect();
-  if (rect.width > 0 && rect.height > 0) render(rect.width, rect.height);
-
-  // Re-render on resize
-  const ro = new ResizeObserver(([entry]) => {
-    const { width, height } = entry.contentRect;
-    if (width > 0 && height > 0) render(width, height);
-  });
-  ro.observe(cardBody);
-  invalidation.then(() => ro.disconnect());
-}
+    Plot.geo(states, {stroke: "white"}),
+    Plot.image([{}], { x: -76, y: 30,
+      width: 100,
+      sheight: 100,
+      src: () => "assets/legend.png"}),
+  ]
+})
 
 ```
-
-<!-- ## Row -->
-
-<!-- ```{ojs} -->
-<!-- Inputs.table(filtered) -->
-<!-- ``` -->
