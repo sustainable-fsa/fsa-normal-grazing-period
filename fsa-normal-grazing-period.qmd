@@ -296,50 +296,75 @@ value: row ? row[variable] : null  // explicitly add value for coloring
 //| label: map
 //| title: FSA Normal Grazing Periods
 
-Plot.plot({
-projection: {
-type: "albers",
-domain: counties
-},
-grid: true,
-color: {legend: false}, // disable built-in color legend
-marks: [
-Plot.geo(countiesFiltered, {
-fill: d => d.properties.value != null ? color(d.properties.value) : "#ccc"
-}),
-
-Plot.dot(
-countiesFiltered.features.map(f => {
-const [x, y] = d3.geoCentroid(f);
-return {
-...f.properties,
-x,
-y
-};
-}),
 {
-x: "x",
-y: "y",
-r: 3,
-fill: "transparent",
-stroke: "none",
-tip: true,
-title: d => `${d.county} County, ${d.state}
+  const container = html`<div style="width:100%;height:100%;">`;
+
+  function render(w, h) {
+    container.replaceChildren(
+      Plot.plot({
+        width: w,
+        height: h,
+        projection: {
+          type: "albers",
+          domain: counties
+        },
+        grid: true,
+        color: {legend: false},
+        marks: [
+          Plot.geo(countiesFiltered, {
+            fill: d => d.properties.value != null ? color(d.properties.value) : "#ccc"
+          }),
+
+          Plot.dot(
+            countiesFiltered.features.map(f => {
+              const [x, y] = d3.geoCentroid(f);
+              return {
+                ...f.properties,
+                x,
+                y
+              };
+            }),
+            {
+              x: "x",
+              y: "y",
+              r: 3,
+              fill: "transparent",
+              stroke: "none",
+              tip: true,
+              title: d => `${d.county} County, ${d.state}
 FIPS: ${String(d.id).padStart(5, "0")}
 Crop Type: ${type}
 Start: ${d.start_date ? formatDate(d.start_date) : "None"}
 End: ${d.end_date ? formatDate(d.end_date) : "None"}`
-}
-),
+            }
+          ),
 
-Plot.geo(states, {stroke: "white"}),
-Plot.image([{}], { x: -76, y: 30, 
-width: 100, 
-sheight: 100,
-// r = 10,
-src: () => "assets/legend.png"}),
-]
-})
+          Plot.geo(states, {stroke: "white"}),
+          Plot.image([{}], { x: -76, y: 30,
+            width: 100,
+            sheight: 100,
+            src: () => "assets/legend.png"}),
+        ]
+      })
+    );
+  }
+
+  yield container;
+
+  const cardBody = container.closest('.card-body') || container.parentElement;
+
+  // Initial render
+  const rect = cardBody.getBoundingClientRect();
+  if (rect.width > 0 && rect.height > 0) render(rect.width, rect.height);
+
+  // Re-render on resize
+  const ro = new ResizeObserver(([entry]) => {
+    const { width, height } = entry.contentRect;
+    if (width > 0 && height > 0) render(width, height);
+  });
+  ro.observe(cardBody);
+  invalidation.then(() => ro.disconnect());
+}
 
 ```
 
