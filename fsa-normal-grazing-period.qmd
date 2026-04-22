@@ -199,7 +199,7 @@ d3.extent(data, d => d.year),
 {
 step: 1, 
 label: "Year",
-value: 2024
+value: 2026
 }
 )
 

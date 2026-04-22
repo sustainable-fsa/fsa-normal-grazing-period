@@ -15,11 +15,13 @@ This repository is an archive of the annual county-level **Normal Grazing Period
 
 > For more information on the role of NGPs in the LFP, refer to [FSA Handbook 1-LFP, Amendment 4](https://www.fsa.usda.gov/Internet/FSA_File/1lfp_a4.pdf).
 
-The data in this repository were acquired via FOIA request **2025-FSA-04691-F** by R. Kyle Bocinsky (Montana Climate Office) and fulfilled on April 15, 2025. The FOIA response, including the original Excel workbook, is archived in the [`foia`](./foia) directory.
+The data in this repository were acquired via FOIA requests **2025-FSA-04691-F**, **2026-FSA-02435-F**, and **2026-FSA-03465-F** by R. Kyle Bocinsky (Montana Climate Office). The FOIA requests and responses, including the original Excel workbook, is archived in the [`foia`](./foia) directory.
 
 ## 🗂️ Contents
 
-- [`foia/2025-FSA-04691-F Bocinsky.zip`](./foia/2025-FSA-04691-F Bocinsky.zip) — original FOIA data and correspondence
+- [`foia/2025-FSA-04691-F Bocinsky.zip`](./foia/2025-FSA-04691-F Bocinsky.zip) — FOIA 2025-FSA-04691-F data and correspondence
+- [`foia/2026-FSA-02435-F Bocinsky.zip`](./foia/2026-FSA-02435-F Bocinsky.zip) — FOIA 2026-FSA-02435-F data and correspondence
+- [`foia/026-FSA-03465-F Bocinsky.zip`](./foia/026-FSA-03465-F Bocinsky.zip) — FOIA 026-FSA-03465-F data and correspondence
 - [`fsa-normal-grazing-period.csv`](./fsa-normal-grazing-period.csv) — cleaned and consolidated data
 - [`fsa-normal-grazing-period.R`](./fsa-normal-grazing-period.R) — processing script
 - [`fsa-normal-grazing-period.qmd`](./fsa-normal-grazing-period.qmd) — Quarto dashboard source
@@ -29,7 +31,7 @@ The data in this repository were acquired via FOIA request **2025-FSA-04691-F** 
 
 ## 📥 Input Data: FOIA Excel Workbook
 
-The FOIA response contains annual NGP data from **2008 through 2024** for each pasture type, county, and program year.
+The FOIA response contains annual NGP data from **2008 through 2026** for each pasture type, county, and program year.
 
 ### Key Variables
 
@@ -122,17 +124,17 @@ counties <-
   sf::st_set_crs("EPSG:4326") |>
   sf::st_transform("EPSG:5070")
 
-## Calculate the 2024 Normal Grazing Period duration for Native Pasture, and
+## Calculate the 2026 Normal Grazing Period duration for Native Pasture, and
 ## combine with the county data
 ngp_counties <-
   ngp |>
   dplyr::filter(`Pasture Type` == "Native Pasture",
-                `Program Year` == 2024) |>
+                `Program Year` == 2026) |>
   dplyr::transmute(
-    id = paste0(`State FSA Code`,`County FSA Code`),
+    id = paste0(`FIPS State Code`, `FIPS County Code`),
     `Grazing Period Duration` = 
       
-        (`Normal Grazing Period End Date` - `Normal Grazing Period Start Date`) |>
+        (`Grazing Period End Date` - `Grazing Period Start Date`) |>
       magrittr::divide_by(7) |>
       as.integer()
   ) |>
@@ -161,7 +163,7 @@ ggplot(counties) +
   khroma::scale_fill_batlowK(limits = c(0,52),
                             name = "NGP\nDuration\n(weeks)") +
   labs(title = "FSA Normal Grazing Period Duration",
-       subtitle = "Native Pasture — 2024") +
+       subtitle = "Native Pasture — 2026") +
   theme_void()
 ```
 
@@ -181,7 +183,7 @@ FSA county codes are documented in [FSA Handbook 1-CM, Exhibit 101](https://www.
 
 If using this data in published work, please cite:
 
-> USDA Farm Service Agency. *Normal Grazing Periods, 2008–2024*. FOIA request 2025-FSA-04691-F by R. Kyle Bocinsky. Accessed via GitHub archive, YYYY. https://sustainable-fsa.com/fsa-normal-grazing-period/
+> USDA Farm Service Agency. *Normal Grazing Periods, 2008–2026*. FOIA requests 2025-FSA-04691-F, 2026-FSA-02435-F, and 2026-FSA-03465-F by R. Kyle Bocinsky. Accessed via GitHub archive, YYYY. https://sustainable-fsa.com/fsa-normal-grazing-period/
 
 ---
 

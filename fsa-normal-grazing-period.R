@@ -42,6 +42,17 @@ fsa_normal_grazing_period <-
         files = "LFP_NormalGrazingPeriodsReport20250416.xlsx",
         exdir = tempdir()) %>%
   readxl::read_excel() %>%
+  dplyr::bind_rows(., 
+    unzip(zipfile = "foia/2026-FSA-03465-F Bocinsky.zip",
+          files = "2026-FSA-03465-F Bocinsky/LFP_NormalGrazingPeriodsReport20260422.xlsx",
+          exdir = tempdir()) |>
+      readxl::read_excel() |>
+      dplyr::mutate(
+        state_fsa_code = stringr::str_pad(state_fsa_code, width = 2, pad = "0"),
+        county_fsa_code = stringr::str_pad(county_fsa_code, width = 3, pad = "0")
+      ) |>
+      magrittr::set_names(x = _, value = names(.))
+  ) %>%
   # Some start and end dates are NA — remove
   dplyr::filter(!is.na(`Normal Grazing Period Start Date`)) %>%
   dplyr::left_join(fsa_counties_dd17,
@@ -76,11 +87,10 @@ fsa_normal_grazing_period <-
     
     # Correct name of "Full Season Improved Mixed Pasture" in certain records
     `Pasture Type` = 
-      dplyr::case_match(
+      dplyr::replace_values(
         `Pasture Type`,
         "Full Season Improved Mixed Pastures" ~ 
-          "Full Season Improved Mixed Pasture",
-        .default = `Pasture Type`),
+          "Full Season Improved Mixed Pasture"),
     
     `Grazing Period Start Date` = 
       case_when(
@@ -153,3 +163,6 @@ fsa_normal_grazing_period <-
 
 ## Render the interactive dashboard
 quarto::quarto_render("fsa-normal-grazing-period.qmd")
+
+## Render the README
+quarto::quarto_render("README.Rmd", output_format = "md")
