@@ -225,6 +225,8 @@ If you use this data in published work, please cite:
 > Climate Office, University of Montana. Sustainable FSA project.
 > Accessed YYYY-MM-DD.
 > <https://sustainable-fsa.com/fsa-normal-grazing-period/>
+>
+> DOI: <https://doi.org/10.5281/zenodo.15252842>
 
 Machine-readable metadata are in [`CITATION.cff`](CITATION.cff);
 GitHub’s **Cite this repository** button (top right of the repo page)
