@@ -25,7 +25,14 @@ The data in this repository were acquired via FOIA requests **2025-FSA-04691-F**
 - [`fsa-normal-grazing-period.csv`](https://data.sustainable-fsa.com/fsa-normal-grazing-period/fsa-normal-grazing-period.csv) — cleaned and consolidated data
 - [`fsa-normal-grazing-period.R`](./fsa-normal-grazing-period.R) — processing script
 - [`fsa-normal-grazing-period.qmd`](./fsa-normal-grazing-period.qmd) — Quarto dashboard source
-- [`fsa-normal-grazing-period.html`](https://data.sustainable-fsa.com/fsa-normal-grazing-period/fsa-normal-grazing-period.html) — interactive summary dashboard
+- [`fsa-normal-grazing-period.html`](https://sustainable-fsa.com/fsa-normal-grazing-period/fsa-normal-grazing-period.html) — interactive summary dashboard
+- [`_manifest.txt`](https://data.sustainable-fsa.com/fsa-normal-grazing-period/_manifest.txt) — flat index of every file in the S3-hosted mirror
+
+## ☁️ Archive Hosting & Automated Publishing
+
+The consolidated data (`fsa-normal-grazing-period.csv`), the `assets/` directory the dashboard reads from, and the `foia/` correspondence are all mirrored to S3, served via CloudFront at <https://data.sustainable-fsa.com/fsa-normal-grazing-period/> (browse the [archive listing](https://data.sustainable-fsa.com/fsa-normal-grazing-period/) or [`_manifest.txt`](https://data.sustainable-fsa.com/fsa-normal-grazing-period/_manifest.txt) for a flat index). The interactive dashboard itself is served separately, via GitHub Pages at <https://sustainable-fsa.com/fsa-normal-grazing-period/>.
+
+Publishing is handled by [`fsa-normal-grazing-period.R`](fsa-normal-grazing-period.R) via the shared [`R/s3-archive.R`](R/s3-archive.R) helpers, and runs automatically in GitHub Actions ([`.github/workflows/fsa-normal-grazing-period.yaml`](.github/workflows/fsa-normal-grazing-period.yaml)) whenever the script, dashboard, or workflow changes, or on manual dispatch. The workflow authenticates to AWS via GitHub OIDC (no long-lived credentials stored in the repo), re-renders the README and dashboard, and commits them back to git only if the rendered output changed.
 
 ---
 

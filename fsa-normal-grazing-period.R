@@ -2,6 +2,12 @@ library(tidyverse)
 library(magrittr)
 library(quarto)
 
+source("R/s3-archive.R")
+s3_preflight()
+
+s3_bucket <- Sys.getenv("S3_BUCKET", unset = "sustainable-fsa")
+s3_prefix <- Sys.getenv("S3_PREFIX", unset = "fsa-normal-grazing-period")
+
 # Load the census FIPS codes from several vintages
 census <-
   dplyr::bind_rows(
@@ -166,3 +172,29 @@ quarto::quarto_render("fsa-normal-grazing-period.qmd")
 
 ## Render the README
 quarto::quarto_render("README.Rmd", output_format = "md")
+
+## Publish the archive to S3 (dual-write alongside the git mirror)
+s3_put(bucket = s3_bucket,
+       key = paste0(s3_prefix, "/fsa-normal-grazing-period.csv"),
+       file = "fsa-normal-grazing-period.csv",
+       content_type = "text/csv")
+
+s3_push(bucket = s3_bucket,
+        prefix = paste0(s3_prefix, "/assets"),
+        local_dir = "assets",
+        delete = TRUE)
+
+s3_push(bucket = s3_bucket,
+        prefix = paste0(s3_prefix, "/foia"),
+        local_dir = "foia",
+        delete = TRUE)
+
+s3_write_manifest(bucket = s3_bucket,
+                  prefix = s3_prefix)
+
+cf_invalidate(
+  paths = c(
+    paste0("/", s3_prefix, "/fsa-normal-grazing-period.csv"),
+    paste0("/", s3_prefix, "/_manifest.txt")
+  )
+)
