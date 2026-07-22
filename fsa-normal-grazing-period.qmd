@@ -29,7 +29,9 @@ readr::read_csv("fsa-normal-grazing-period.csv") |>
     start_date = `Grazing Period Start Date`,
     end_date = `Grazing Period End Date`,
     start_yday = lubridate::yday(`Grazing Period Start Date`),
-    end_yday = lubridate::yday(`Grazing Period End Date`)) |>
+    end_yday = lubridate::yday(`Grazing Period End Date`),
+    duration_weeks =
+      as.integer((`Grazing Period End Date` - `Grazing Period Start Date`) / 7)) |>
   readr::write_csv(
     file.path("assets", "fsa-normal-grazing-period-simple.csv"),
     quote = "all")
@@ -149,6 +151,35 @@ ggsave(filename = "assets/legend.png",
        height = 2.5,
        width = 2.5,
        dpi = 150)
+
+## duration sequential palette (weeks), matching README.Rmd's static map
+duration_max <- 52
+duration_colors <- as.character(khroma::color("batlowK")(duration_max + 1))
+jsonlite::write_json(duration_colors, "assets/colors-duration.json", auto_unbox = TRUE)
+
+## duration linear legend (vertical color bar + week labels) — not polar,
+## since duration is not a cyclic quantity like day-of-year
+duration_legend <-
+  tibble::tibble(week = seq(0, duration_max, length.out = 500)) |>
+  ggplot(aes(x = 1, y = week, fill = week)) +
+  geom_tile(color = NA, linewidth = 0) +
+  khroma::scale_fill_batlowK(limits = c(0, duration_max)) +
+  scale_y_continuous(breaks = scales::pretty_breaks(6), expand = c(0, 0)) +
+  guides(fill = "none") +
+  labs(y = "NGP Duration (weeks)") +
+  theme_void(base_size = 24) +
+  theme(axis.text.y = element_text(size = 16, face = "bold", hjust = 1),
+        axis.title.y = element_text(size = 16, face = "bold", angle = 90,
+                                     margin = margin(r = 8)),
+        panel.grid = element_blank(),
+        plot.margin = margin(0.1, 0.3, 0.1, 0.1, unit = "in"))
+
+ggsave(filename = "assets/legend-duration.png",
+       plot = duration_legend,
+       device = ragg::agg_png,
+       height = 2.5,
+       width = 1.2,
+       dpi = 150)
 ```
 
 
@@ -173,14 +204,15 @@ value: "Native Pasture"
 }
 )
 
-viewof variable = Inputs.radio(
+viewof variable = Inputs.select(
 new Map([
-["Season Start", "start_yday"], 
-["Season End", "end_yday"]
+["Season Start", "start_yday"],
+["Season End", "end_yday"],
+["Grazing Period Duration", "duration_weeks"]
 ]),
 {
 label: "Color by",
-value: "start_yday"
+value: "duration_weeks"
 }
 )
 ```
@@ -197,9 +229,15 @@ states = topojson.mesh(us, us.objects.states, (a, b) => a !== b)
 data = FileAttachment("assets/fsa-normal-grazing-period-simple.csv").csv({typed: true})
 
 romaO = FileAttachment("assets/colors.json").json()
-color = d3.scaleSequential()
+colorCyclic = d3.scaleSequential()
   .domain([1, 366])
   .interpolator(t => romaO[Math.floor(t * (romaO.length - 1))])
+
+batlowK = FileAttachment("assets/colors-duration.json").json()
+colorDuration = d3.scaleSequential()
+  .domain([0, 52])
+  .clamp(true)
+  .interpolator(t => batlowK[Math.floor(t * (batlowK.length - 1))])
 
 ```
 
@@ -207,6 +245,8 @@ color = d3.scaleSequential()
 //| output: false
 
 filtered = data.filter(d => d.year === year && d.type === type)
+
+color = variable === "duration_weeks" ? colorDuration : colorCyclic
 
 countiesFiltered = {
   const rowById = Object.fromEntries(
@@ -288,15 +328,16 @@ Plot.plot({
 FIPS: ${String(d.id).padStart(5, "0")}
 Crop Type: ${type}
 Start: ${d.start_date ? formatDate(d.start_date) : "None"}
-End: ${d.end_date ? formatDate(d.end_date) : "None"}`
+End: ${d.end_date ? formatDate(d.end_date) : "None"}
+Duration: ${d.duration_weeks != null ? d.duration_weeks + " weeks" : "None"}`
       }
     ),
 
     Plot.geo(states, {stroke: "white"}),
     Plot.image([{}], { x: -76, y: 30,
-      width: 100,
-      sheight: 100,
-      src: () => "assets/legend.png"}),
+      width: variable === "duration_weeks" ? 60 : 100,
+      height: variable === "duration_weeks" ? 125 : 100,
+      src: () => variable === "duration_weeks" ? "assets/legend-duration.png" : "assets/legend.png"}),
   ]
 })
 
