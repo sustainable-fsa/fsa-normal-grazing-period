@@ -1,6 +1,7 @@
 
+
 [![GitHub
-Release](https://img.shields.io/github/v/release/sustainable-fsa/fsa-normal-grazing-period?label=GitHub%20Release&color=%239c27b0)](https://github.com/sustainable-fsa/fsa-normal-grazing-period)
+Release](https://img.shields.io/github/v/release/sustainable-fsa/fsa-normal-grazing-period?label=GitHub%20Release&color=%239c27b0.png)](https://github.com/sustainable-fsa/fsa-normal-grazing-period)
 [![DOI](https://zenodo.org/badge/814751699.svg)](https://zenodo.org/badge/latestdoi/814751699)
 
 # FSA Normal Grazing Period Archive
@@ -46,13 +47,12 @@ responses, including the original Excel workbook, is archived in the
 
 ## ☁️ Archive Hosting & Automated Publishing
 
-The consolidated data (`fsa-normal-grazing-period.csv`), the
-`assets/` directory the dashboard reads from, and the `foia/`
-correspondence are all mirrored to S3, served via CloudFront at
+The consolidated data (`fsa-normal-grazing-period.csv`), the `assets/`
+directory the dashboard reads from, and the `foia/` correspondence are
+all mirrored to S3, served via CloudFront at
 <https://data.sustainable-fsa.com/fsa-normal-grazing-period/> (browse
 the [archive
-listing](https://data.sustainable-fsa.com/fsa-normal-grazing-period/)
-or
+listing](https://data.sustainable-fsa.com/fsa-normal-grazing-period/) or
 [`_manifest.txt`](https://data.sustainable-fsa.com/fsa-normal-grazing-period/_manifest.txt)
 for a flat index). The interactive dashboard itself is served
 separately, via GitHub Pages at
@@ -78,16 +78,52 @@ for each pasture type, county, and program year.
 
 ### Key Variables
 
-| Variable Name | Description |
-|----|----|
-| `Program Year` | Year the data applies to |
-| `State Name` | U.S. state |
-| `County Name` | County or county-equivalent name |
-| `State FSA Code` | FSA-assigned state code (not always ANSI/FIPS) |
-| `County FSA Code` | FSA-assigned county code (not always ANSI/FIPS) |
-| `Pasture Grazing Type` | Pasture classification (e.g., Native, Improved) |
-| `Normal Grazing Period Start Date` | Start date of typical grazing period |
-| `Normal Grazing Period End Date` | End date of typical grazing period |
+<table>
+<colgroup>
+<col style="width: 40%" />
+<col style="width: 59%" />
+</colgroup>
+<thead>
+<tr>
+<th>Variable Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Program Year</code></td>
+<td>Year the data applies to</td>
+</tr>
+<tr>
+<td><code>State Name</code></td>
+<td>U.S. state</td>
+</tr>
+<tr>
+<td><code>County Name</code></td>
+<td>County or county-equivalent name</td>
+</tr>
+<tr>
+<td><code>State FSA Code</code></td>
+<td>FSA-assigned state code (not always ANSI/FIPS)</td>
+</tr>
+<tr>
+<td><code>County FSA Code</code></td>
+<td>FSA-assigned county code (not always ANSI/FIPS)</td>
+</tr>
+<tr>
+<td><code>Pasture Grazing Type</code></td>
+<td>Pasture classification (e.g., Native, Improved)</td>
+</tr>
+<tr>
+<td><code>Normal Grazing Period Start Date</code></td>
+<td>Start date of typical grazing period</td>
+</tr>
+<tr>
+<td><code>Normal Grazing Period End Date</code></td>
+<td>End date of typical grazing period</td>
+</tr>
+</tbody>
+</table>
 
 ------------------------------------------------------------------------
 
@@ -107,10 +143,10 @@ The processing script
 - Handling duplicate and misassigned counties (e.g., Shoshone County,
   ID).
 
-6.  **Removes invalid or duplicate entries**.
-7.  **Exports** the cleaned data to
+1.  **Removes invalid or duplicate entries**.
+2.  **Exports** the cleaned data to
     [`fsa-normal-grazing-period.csv`](https://data.sustainable-fsa.com/fsa-normal-grazing-period/fsa-normal-grazing-period.csv).
-8.  **Renders** an interactive Quarto dashboard.
+3.  **Renders** an interactive Quarto dashboard.
 
 ------------------------------------------------------------------------
 
@@ -122,17 +158,57 @@ is a tidy dataset for analysis and visualization.
 
 ### Variables in Output
 
-| Variable Name | Description |
-|----|----|
-| `Program Year` | Year the data applies to |
-| `State Name` | Full U.S. state name |
-| `County Name` | County or county-equivalent name |
-| `State FSA Code` | FSA state code (not always ANSI/FIPS) |
-| `County FSA Code` | FSA county code (not always ANSI/FIPS) |
-| `FSA Code` | Combined `State FSA Code` + `County FSA Code` |
-| `Pasture Type` | Standardized pasture type |
-| `Normal Grazing Period Start Date` | Cleaned and corrected start date |
-| `Normal Grazing Period End Date` | Cleaned and corrected end date |
+<table>
+<colgroup>
+<col style="width: 40%" />
+<col style="width: 59%" />
+</colgroup>
+<thead>
+<tr>
+<th>Variable Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Program Year</code></td>
+<td>Year the data applies to</td>
+</tr>
+<tr>
+<td><code>State Name</code></td>
+<td>Full U.S. state name</td>
+</tr>
+<tr>
+<td><code>County Name</code></td>
+<td>County or county-equivalent name</td>
+</tr>
+<tr>
+<td><code>State FSA Code</code></td>
+<td>FSA state code (not always ANSI/FIPS)</td>
+</tr>
+<tr>
+<td><code>County FSA Code</code></td>
+<td>FSA county code (not always ANSI/FIPS)</td>
+</tr>
+<tr>
+<td><code>FSA Code</code></td>
+<td>Combined <code>State FSA Code</code> +
+<code>County FSA Code</code></td>
+</tr>
+<tr>
+<td><code>Pasture Type</code></td>
+<td>Standardized pasture type</td>
+</tr>
+<tr>
+<td><code>Normal Grazing Period Start Date</code></td>
+<td>Cleaned and corrected start date</td>
+</tr>
+<tr>
+<td><code>Normal Grazing Period End Date</code></td>
+<td>Cleaned and corrected end date</td>
+</tr>
+</tbody>
+</table>
 
 ------------------------------------------------------------------------
 
@@ -148,10 +224,9 @@ provides:
 - A **tool for researchers and policymakers** to assess temporal trends
 
 <iframe src="fsa-normal-grazing-period.html" frameborder="0" allowfullscreen style="width:100%;height:40vw;">
-
 </iframe>
 
-Access a full-screen version of the dashboard at:\
+Access a full-screen version of the dashboard at:  
 <https://data.sustainable-fsa.com/fsa-normal-grazing-period/fsa-normal-grazing-period.html>
 
 ------------------------------------------------------------------------
@@ -170,12 +245,11 @@ library(rmapshaper) # For innerlines function
 
 ## Get the Normal Grazing Period data
 ngp <- 
-  readr::read_csv("fsa-normal-grazing-period.csv")
+  readr::read_csv("https://data.sustainable-fsa.com/fsa-normal-grazing-period/fsa-normal-grazing-period.csv")
 
-## The Normal Grazing Period data files use FSA county definitions
-## Download from the FSA_Counties_dd17 archive
+## The Normal Grazing Period data files use Census county definitions
 counties <- 
-  sf::read_sf("https://data.sustainable-fsa.com/fsa-counties-dd17/fsa-counties-dd17.topojson",
+  sf::read_sf("assets/us-census-counties.topojson",
               layer = "counties") |>
   sf::st_set_crs("EPSG:4326") |>
   sf::st_transform("EPSG:5070")
@@ -223,7 +297,7 @@ ggplot(counties) +
   theme_void()
 ```
 
-<img src="./example-1.png" alt="" style="display: block; margin: auto;" />
+<img src="./example-1.png" data-fig-align="center" />
 
 ------------------------------------------------------------------------
 
@@ -294,8 +368,8 @@ Locator**](https://offices.sc.egov.usda.gov/locator/app)
 This project is part of:
 
 **[*Enhancing Sustainable Disaster Relief in FSA
-Programs*](https://www.ars.usda.gov/research/project/?accnNo=444612)**\
-Supported by USDA OCE/OEEP and USDA Climate Hubs\
+Programs*](https://www.ars.usda.gov/research/project/?accnNo=444612)**  
+Supported by USDA OCE/OEEP and USDA Climate Hubs  
 Prepared by the [Montana Climate Office](https://climate.umt.edu)
 
 ------------------------------------------------------------------------
