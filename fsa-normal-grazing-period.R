@@ -27,12 +27,18 @@ census <-
   tibble::as_tibble() %>%
   dplyr::arrange(STATEFP, COUNTYFP)
 
-# Load the FSA dd17 Counties dataset, which includes the crosswalk between FSA codes and FIPS codes
-fsa_counties_dd17 <-
-  sf::read_sf(
-    "/vsizip//vsicurl/https://sustainable-fsa.com/fsa-counties-dd17/FSA_Counties_dd17.gdb.zip"
+# Load the FSA dd17 and ss22 Counties datasets, which include the crosswalk between FSA codes and FIPS codes
+fsa_counties_dd17_dd22 <-
+  dplyr::bind_rows(
+    sf::read_sf(
+      "/vsizip//vsicurl/https://data.sustainable-fsa.com/fsa-counties-dd17/FSA_Counties_dd17.gdb.zip"
+    ) %>%
+      sf::st_drop_geometry(),
+    sf::read_sf(
+      "/vsizip//vsicurl/https://data.sustainable-fsa.com/fsa-counties-dd22/FSA_Counties_dd22_NonGeneralized.gdb.zip"
+    ) %>%
+      sf::st_drop_geometry()
   ) %>%
-  sf::st_drop_geometry() %>%
   dplyr::transmute(
     `State FSA Code` = FSA_ST, 
     `County FSA Code` = stringr::str_trunc(FSA_STCOU, 3, side = "left", ellipsis = ""), 
@@ -42,16 +48,33 @@ fsa_counties_dd17 <-
   dplyr::arrange(`State FSA Code`,`County FSA Code`, `FIPS County Code`) %>%
   dplyr::distinct()
 
+# Extract a single member from a zip archive as a file path. R's internal
+# unzip (the default method) intermittently throws "error 1 in extracting
+# from zip file" on these FOIA archives even though the archive is valid;
+# fall back to the system unzip binary, which handles them without issue.
+extract_member <- function(zipfile, file, exdir = tempdir()) {
+  path <- file.path(exdir, file)
+  extracted <- tryCatch(
+    unzip(zipfile = zipfile, files = file, exdir = exdir),
+    warning = function(w) character(0)
+  )
+  if (length(extracted) == 0 || !file.exists(path)) {
+    unzip(zipfile = zipfile, files = file, exdir = exdir, unzip = "unzip")
+  }
+  if (!file.exists(path)) {
+    stop("Failed to extract '", file, "' from '", zipfile, "'")
+  }
+  path
+}
+
 # FSA-defined Normal Grazing Periods
 fsa_normal_grazing_period <-
-  unzip(zipfile = "foia/2025-FSA-04691-F Bocinsky.zip",
-        files = "LFP_NormalGrazingPeriodsReport20250416.xlsx",
-        exdir = tempdir()) %>%
+  extract_member("foia/2025-FSA-04691-F Bocinsky.zip",
+                 "LFP_NormalGrazingPeriodsReport20250416.xlsx") %>%
   readxl::read_excel() %>%
-  dplyr::bind_rows(., 
-    unzip(zipfile = "foia/2026-FSA-03465-F Bocinsky.zip",
-          files = "2026-FSA-03465-F Bocinsky/LFP_NormalGrazingPeriodsReport20260422.xlsx",
-          exdir = tempdir()) |>
+  dplyr::bind_rows(.,
+    extract_member("foia/2026-FSA-03465-F Bocinsky.zip",
+                    "2026-FSA-03465-F Bocinsky/LFP_NormalGrazingPeriodsReport20260422.xlsx") |>
       readxl::read_excel() |>
       dplyr::mutate(
         state_fsa_code = stringr::str_pad(state_fsa_code, width = 2, pad = "0"),
@@ -61,7 +84,7 @@ fsa_normal_grazing_period <-
   ) %>%
   # Some start and end dates are NA — remove
   dplyr::filter(!is.na(`Normal Grazing Period Start Date`)) %>%
-  dplyr::left_join(fsa_counties_dd17,
+  dplyr::left_join(fsa_counties_dd17_dd22,
                    relationship = "many-to-many") %>%
   dplyr::transmute(
     `FIPS State Code` = ifelse(!is.na(`FIPS State Code`), `FIPS State Code`, `State FSA Code`),

@@ -121,12 +121,11 @@ library(rmapshaper) # For innerlines function
 
 ## Get the Normal Grazing Period data
 ngp <- 
-  readr::read_csv("fsa-normal-grazing-period.csv")
+  readr::read_csv("https://data.sustainable-fsa.com/fsa-normal-grazing-period/fsa-normal-grazing-period.csv")
 
-## The Normal Grazing Period data files use FSA county definitions
-## Download from the FSA_Counties_dd17 archive
+## The Normal Grazing Period data files use Census county definitions
 counties <- 
-  sf::read_sf("https://data.sustainable-fsa.com/fsa-counties-dd17/fsa-counties-dd17.topojson",
+  sf::read_sf("assets/us-census-counties.topojson",
               layer = "counties") |>
   sf::st_set_crs("EPSG:4326") |>
   sf::st_transform("EPSG:5070")
